@@ -60,7 +60,8 @@ const styles = StyleSheet.create({
   emptyStateContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    // marginTop: 50,
+    marginVertical: 'auto',
     flex: 1,
   },
   emptyStateText: {

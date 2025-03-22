@@ -1,60 +1,120 @@
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, ToastAndroid, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { colors, fontFamily } from '../theme'
 import ImageCard from '../components/ImageCard'
+import { api } from '../utils/api'
 
 
 const DiscoverScreen = () => {
   const [refreshing, setRefreshing] = React.useState(false)
-  const data = [
-    {
-      id: 1,
-      imageUrl: 'https://imgs.search.brave.com/OHitbAHYrFwttbW5gavNIcnsttVlZTewLFw2f6F2n9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWd2/My5mb3Rvci5jb20v/aW1hZ2VzL2dhbGxl/cnkvZ2VuZXJhdGUt/YS1yZWFsaXN0aWMt/YWktYXZhdGFyLW9m/LWEtc3R5bGlzaC13/b21hbi1pbi1mb3Rv/cl8yMDI1LTAzLTA1/LTA5MzU1OF9zbHNo/LmpwZw',
-      prompt: "What's your favorite thing about the city you live in?",
-    },
-    {
-      id: 2,
-      imageUrl: 'https://imgs.search.brave.com/OHitbAHYrFwttbW5gavNIcnsttVlZTewLFw2f6F2n9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWd2/My5mb3Rvci5jb20v/aW1hZ2VzL2dhbGxl/cnkvZ2VuZXJhdGUt/YS1yZWFsaXN0aWMt/YWktYXZhdGFyLW9m/LWEtc3R5bGlzaC13/b21hbi1pbi1mb3Rv/cl8yMDI1LTAzLTA1/LTA5MzU1OF9zbHNo/LmpwZw',
-      prompt: "What's your favorite thing about the city you live in?",
-    },
-    {
-      id: 3,
-      imageUrl: 'https://imgs.search.brave.com/OHitbAHYrFwttbW5gavNIcnsttVlZTewLFw2f6F2n9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWd2/My5mb3Rvci5jb20v/aW1hZ2VzL2dhbGxl/cnkvZ2VuZXJhdGUt/YS1yZWFsaXN0aWMt/YWktYXZhdGFyLW9m/LWEtc3R5bGlzaC13/b21hbi1pbi1mb3Rv/cl8yMDI1LTAzLTA1/LTA5MzU1OF9zbHNo/LmpwZw',
-      prompt: "What's your favorite thing about the city you live in?",
-    },
-    {
-      id: 4,
-      imageUrl: 'https://imgs.search.brave.com/OHitbAHYrFwttbW5gavNIcnsttVlZTewLFw2f6F2n9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWd2/My5mb3Rvci5jb20v/aW1hZ2VzL2dhbGxl/cnkvZ2VuZXJhdGUt/YS1yZWFsaXN0aWMt/YWktYXZhdGFyLW9m/LWEtc3R5bGlzaC13/b21hbi1pbi1mb3Rv/cl8yMDI1LTAzLTA1/LTA5MzU1OF9zbHNo/LmpwZw',
-      prompt: "What's your favorite thing about the city you live in?",
-    },
-    {
-      id: 5,
-      imageUrl: 'https://imgs.search.brave.com/OHitbAHYrFwttbW5gavNIcnsttVlZTewLFw2f6F2n9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWd2/My5mb3Rvci5jb20v/aW1hZ2VzL2dhbGxl/cnkvZ2VuZXJhdGUt/YS1yZWFsaXN0aWMt/YWktYXZhdGFyLW9m/LWEtc3R5bGlzaC13/b21hbi1pbi1mb3Rv/cl8yMDI1LTAzLTA1/LTA5MzU1OF9zbHNo/LmpwZw',
-      prompt: "What's your favorite thing about the city you live in?",
-    },
-    {
-      id: 6,
-      imageUrl: 'https://imgs.search.brave.com/OHitbAHYrFwttbW5gavNIcnsttVlZTewLFw2f6F2n9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWd2/My5mb3Rvci5jb20v/aW1hZ2VzL2dhbGxl/cnkvZ2VuZXJhdGUt/YS1yZWFsaXN0aWMt/YWktYXZhdGFyLW9m/LWEtc3R5bGlzaC13/b21hbi1pbi1mb3Rv/cl8yMDI1LTAzLTA1/LTA5MzU1OF9zbHNo/LmpwZw',
-      prompt: "What's your favorite thing about the city you live in?",
-    }
-  ]
+  const [page, setPage] = React.useState(1)
+  const [images, setImages] = useState<any>([])
+  const [loading, setLoading] = useState(false)
+  const [hasNextPage, setHasNextPage] = useState(true)
 
-  const onRefresh = () => {
-    setRefreshing(true)
-    // make api call here
-    setTimeout(() => {
-      setRefreshing(false)
-    }, 2000)
+  // const handleFetchImages = async () => {
+  //   try {
+  //     setLoading(true)
+  //     const response = await api.get('/discover-image', {
+  //       params: {
+  //         limit: 10,
+  //         page
+  //       }
+  //     })
+  //     console.log(response.data)
+  //     setImages((prev:any)=>[...prev, ...response.data.images])
+  //     setHasNextPage(response.data.totalPages > page)
+  //   } catch (error) {
+  //     ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
+  //     console.log(error);
+  //   }
+  //   finally {
+  //     setLoading(false)
+  //   }
+  // }
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+
+    try {
+      const response = await api.get('/discover-image', { params: { limit: 10, page: 1 } });
+      setImages(response.data.images); // Purana data hata diya
+      setHasNextPage(response.data.totalPages > 1);
+    } catch (error) {
+      ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
+      console.log(error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleFetchImages = async () => {
+    if (loading || !hasNextPage) return;
+
+    try {
+      setLoading(true);
+      const response = await api.get('/discover-image', {
+        params: { limit: 10, page }
+      });
+
+      // New data ko old data ke sath merge karte hue, duplicates ko filter karenge
+      setImages((prev: any) => {
+        const mergedData = [...prev, ...response.data.images];
+        const uniqueImages = Array.from(new Map(mergedData.map(item => [item._id, item])).values());
+        return uniqueImages;
+      });
+
+      setHasNextPage(response.data.totalPages > page);
+    } catch (error) {
+      ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+  const handleLoadMore = async () => {
+    if (hasNextPage) {
+      setPage(page + 1)
+    }
   }
+
+  // const onRefresh = async () => {
+  //   setRefreshing(true);
+  //   setImages([]); // Purana data clear karo
+  //   setPage(1);
+
+  //   try {
+  //     const response = await api.get('/discover-image', { params: { limit: 10, page: 1 } });
+  //     setImages(response.data.images);
+  //     setHasNextPage(response.data.totalPages > 1);
+  //   } catch (error) {
+  //     ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
+  //     console.log(error);
+  //   } finally {
+  //     setRefreshing(false);
+  //   }
+  // };
+
+
+
+  useEffect(() => {
+    handleFetchImages()
+  }, [page, refreshing])
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Discover</Text>
       <FlatList
-        data={data}
+        data={images}
         renderItem={({ item }) => (
           <ImageCard item={item} />
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
         refreshControl={
@@ -64,6 +124,10 @@ const DiscoverScreen = () => {
             tintColor={colors.textColor}
           />
         }
+        ListFooterComponent={
+          loading ? <ActivityIndicator size="large" color={colors.textColor} /> : null
+        }
+        onEndReached={handleLoadMore}
       />
     </View>
   )

@@ -6,11 +6,13 @@ import DiscoverScreen from './src/screens/DiscoverScreen'
 import LikeScreen from './src/screens/LikeScreen'
 import Feather from 'react-native-vector-icons/Feather'
 import { colors } from './src/theme'
+import { LikeImagesProvider } from './src/context/LikeImageContext'
 
 const Tab = createBottomTabNavigator()
 const App = () => {
   return (
-    <NavigationContainer>
+    <LikeImagesProvider>
+      <NavigationContainer>
       <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -44,6 +46,7 @@ const App = () => {
         <Tab.Screen name="Like" component={LikeScreen}/>
       </Tab.Navigator>
     </NavigationContainer>
+    </LikeImagesProvider>
   )
 }
 

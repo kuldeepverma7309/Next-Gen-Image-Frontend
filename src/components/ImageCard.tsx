@@ -2,23 +2,28 @@ import { Image, Modal, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } 
 import React from 'react'
 import { colors, fontFamily } from '../theme'
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { requestWriteStoragePermission } from '../utils'
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import Share from 'react-native-share';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { LikeImagesContext } from '../context/LikeImageContext'
 
 
-interface propsType {
-  item: {
-    imageUrl: string,
-    prompt: string
-  }
-}
-const ImageCard = ({ item }: propsType) => {
+
+const ImageCard = ({ item }:any) => {
   // const [showModal, setShowModal] = React.useState(false)
   const [isDownloading, setIsDownloading] = React.useState(false)
   const [downloadProgress, setDownloadProgress] = React.useState(0)
   const [isProcessing, setIsProcessing] = React.useState(false)
+
+  const { toggleLikeImage, likeImages } = React.useContext(LikeImagesContext)
+
+  const checkIsImageLiked = (image: any) => {
+    const isLiked = likeImages.some((item:any) => item._id === image._id)
+    if(isLiked) return true
+    return false
+  }
 
   const handleDownload = async () => {
     // ask the permissions from local memory for downloading
@@ -75,6 +80,7 @@ const ImageCard = ({ item }: propsType) => {
 
   const processImageToShare = async () => {
     // ask the permissions from local memory for downloading
+    let percentage
     const isGranted = await requestWriteStoragePermission()
     if (!isGranted) return
     // download the file using react-native blob utils
@@ -96,7 +102,7 @@ const ImageCard = ({ item }: propsType) => {
       // }
     }).fetch('GET', imageUrl).progress({ interval: 100 }, (received, total) => {
       console.log(`received: ${received} total: ${total}`)
-      let percentage = Math.floor(received / total) * 100
+      percentage = Math.floor(received / total) * 100
       setDownloadProgress(percentage)
     }).then((res) => {
       setIsProcessing(false)
@@ -164,8 +170,8 @@ const ImageCard = ({ item }: propsType) => {
           <Ionicons name='copy-outline' size={20} color={colors.textColor} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name='heart-outline' size={20} color={colors.textColor} />
+        <TouchableOpacity style={styles.actionButton} onPress={() => toggleLikeImage(item)}>
+          <AntDesign name={checkIsImageLiked(item) ? "heart" : "hearto"} size={20} color={checkIsImageLiked(item) ? "#ec0808": colors.textColor} />
         </TouchableOpacity>
       </View>
 
@@ -177,9 +183,9 @@ const ImageCard = ({ item }: propsType) => {
               {isDownloading ? 'Downloading Image' : 'Processing Image'}
             </Text>
             <Text style={styles.progressText}>
-             {
+              {
                 isDownloading ? `${downloadProgress}%` : 'Processing'
-             }
+              }
             </Text>
             <Text style={styles.progressDescription}>
               {isDownloading ? 'Please wait while we download the image' : 'Please wait while we process the image'}

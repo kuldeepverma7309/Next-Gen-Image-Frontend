@@ -3,7 +3,6 @@ import React from 'react'
 import { colors, fontFamily } from '../theme'
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons'
 import ImageCard from '../components/ImageCard'
-import axios from 'axios'
 import { api } from '../utils/api'
 
 const HomeScreen = () => {
@@ -28,7 +27,7 @@ const HomeScreen = () => {
         prompt: prompt
       })
       console.log(response.data.image.imageUrl);
-      setImage(response.data.image.imageUrl);
+      setImage(response.data.image);
       ToastAndroid.show('Image generated successfully', ToastAndroid.SHORT);
     } catch (error) {
       ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
@@ -59,6 +58,7 @@ const HomeScreen = () => {
             style={styles.textInput}
             value={prompt}
             onChangeText={(text) => setPrompt(text)}
+            scrollEnabled={true}
           />
           {
             prompt.length > 0 && (
@@ -92,7 +92,7 @@ const HomeScreen = () => {
         image && (
           <View style={styles.imageWrapper}>
             {/* image card */}
-            <ImageCard item={{ imageUrl: image, prompt: "Generate an AI Image" }} />
+            <ImageCard item={image} />
           </View>
         )
       }
